@@ -180,8 +180,13 @@
                     return;
                 }
 
-                const dateHash = today.split('-').reduce((acc, part) => acc + parseInt(part), 0);
-                const todayIndex = dateHash % facts.length;
+                const now = new Date();
+                const startOfYear = new Date(now.getFullYear(), 0, 0);
+                const diff = now - startOfYear;
+                const oneDay = 1000 * 60 * 60 * 24;
+                const dayOfYear = Math.floor(diff / oneDay);
+
+                const todayIndex = dayOfYear % facts.length;
                 const currentFact = facts[todayIndex];
 
                 const imgUrl = currentFact.img || currentFact.image || "";
