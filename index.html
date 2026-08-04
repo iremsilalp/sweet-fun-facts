@@ -142,7 +142,7 @@
     </div>
 
     <script>
-        // ⚠️ SheetDB'den aldığın API URL'si buraya gelecek:
+        
         const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
 
         const today = new Date().toISOString().slice(0, 10);
@@ -150,9 +150,9 @@
         const savedFactText = localStorage.getItem("savedFactText");
         const savedFactImg = localStorage.getItem("savedFactImg");
 
-        // Sayfa her yüklendiğinde / yenilendiğinde çalışır
+        
         window.onload = function() {
-            // Eğer bugün zaten açılmışsa, kaydedilen fun fact'i direkt ekranda göster
+            
             if (lastOpenedDate === today && savedFactText) {
                 renderFactData(savedFactText, savedFactImg);
                 lockButton();
@@ -163,7 +163,7 @@
             const factText = document.getElementById("fact");
             const btn = document.querySelector(".btn-generate");
 
-            // Güvenlik: Bugün zaten açıldıysa tekrar çalıştırma
+            
             if (localStorage.getItem("lastOpenedDate") === today) {
                 return;
             }
@@ -175,7 +175,7 @@
                 const response = await fetch(API_URL);
                 const rawFacts = await response.json();
 
-                // Boş satırları ve başlık kelimesi kalmış verileri filtrele
+                
                 const facts = rawFacts.filter(f => f.text && f.text.trim() !== "" && f.text !== "text");
 
                 if (!facts || facts.length === 0) {
@@ -185,24 +185,24 @@
                     return;
                 }
 
-                // Günün tarihine özel sabit indeks hesabı
+                
                 const dateHash = today.split('-').reduce((acc, part) => acc + parseInt(part), 0);
                 const todayIndex = dateHash % facts.length;
                 const currentFact = facts[todayIndex];
 
-                // Görsel URL'si hem 'img' hem de 'image' başlığını destekler
+                
                 const imgUrl = currentFact.img || currentFact.image || "";
 
-                // Cihazın hafızasına kaydet
+                
                 localStorage.setItem("lastOpenedDate", today);
                 localStorage.setItem("savedFactText", currentFact.text);
                 localStorage.setItem("savedFactImg", imgUrl);
 
-                // Ekrana yazdır, konfeti patlat ve butonu kilitle
+                
                 renderFactData(currentFact.text, imgUrl);
                 lockButton();
 
-                // İlk defa açıldığı için konfeti efekti
+                
                 confetti({
                     particleCount: 80,
                     spread: 70,
@@ -218,7 +218,7 @@
             }
         }
 
-        // Metin ve görseli ekrana basan yardımcı fonksiyon
+        
         function renderFactData(text, imgUrl) {
             const factText = document.getElementById("fact");
             const memeImg = document.getElementById("meme");
@@ -233,7 +233,7 @@
             }
         }
 
-        // Butonu pasife alan ve tıklanmasını engelleyen yardımcı fonksiyon
+        
         function lockButton() {
             const btn = document.querySelector(".btn-generate");
             btn.textContent = "Bugünün Fun Fact'i Açıldı! 🔒";
