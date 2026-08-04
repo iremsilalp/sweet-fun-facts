@@ -144,9 +144,8 @@
     </div>
 
     <script>
-        const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9/search?id=2";
+        const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
 
-        // Eski kilitli kalmış hafızayı zorla temizle
         localStorage.clear();
 
         async function getNewFact() {
@@ -157,8 +156,13 @@
             btn.disabled = true;
 
             try {
-                const cacheBusterUrl = `${API_URL}&t=${Date.now()}`;
-                const response = await fetch(cacheBusterUrl, { cache: "no-store" });
+                const cacheBusterUrl = `${API_URL}?_=${Date.now()}`;
+                const response = await fetch(cacheBusterUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Hata: ${response.status}`);
+                }
+
                 const rawFacts = await response.json();
 
                 if (!rawFacts || rawFacts.length === 0) {
@@ -168,7 +172,12 @@
                     return;
                 }
 
-                const currentFact = rawFacts[0];
+                let currentFact = rawFacts.find(f => String(f.id || f.ID).trim() === "2");
+
+                if (!currentFact) {
+                    currentFact = rawFacts[1] || rawFacts[0];
+                }
+
                 const imgUrl = currentFact.img || currentFact.image || "";
 
                 renderFactData(currentFact.text, imgUrl);
@@ -176,7 +185,7 @@
                 fireConfetti();
 
             } catch (error) {
-                console.error("API Hatası:", error);
+                console.error("API Hatası Detayı:", error);
                 factText.textContent = "Bir küçük aksaklık oldu ama seni sevdiğim gerçeği değişmedi! 💖";
                 btn.textContent = "Tekrar Dene 🎲";
                 btn.disabled = false;
