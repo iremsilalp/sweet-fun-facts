@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Günün Sweet & Fun Fact'i ✨</title>
-    <!-- Google Fonts & Canvas Confetti -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -142,7 +141,6 @@
     </div>
 
     <script>
-        
         const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
 
         const today = new Date().toISOString().slice(0, 10);
@@ -150,12 +148,11 @@
         const savedFactText = localStorage.getItem("savedFactText");
         const savedFactImg = localStorage.getItem("savedFactImg");
 
-        
         window.onload = function() {
-            
             if (lastOpenedDate === today && savedFactText) {
                 renderFactData(savedFactText, savedFactImg);
                 lockButton();
+                fireConfetti();
             }
         };
 
@@ -163,7 +160,6 @@
             const factText = document.getElementById("fact");
             const btn = document.querySelector(".btn-generate");
 
-            
             if (localStorage.getItem("lastOpenedDate") === today) {
                 return;
             }
@@ -175,7 +171,6 @@
                 const response = await fetch(API_URL);
                 const rawFacts = await response.json();
 
-                
                 const facts = rawFacts.filter(f => f.text && f.text.trim() !== "" && f.text !== "text");
 
                 if (!facts || facts.length === 0) {
@@ -185,30 +180,19 @@
                     return;
                 }
 
-                
                 const dateHash = today.split('-').reduce((acc, part) => acc + parseInt(part), 0);
                 const todayIndex = dateHash % facts.length;
                 const currentFact = facts[todayIndex];
 
-                
                 const imgUrl = currentFact.img || currentFact.image || "";
 
-                
                 localStorage.setItem("lastOpenedDate", today);
                 localStorage.setItem("savedFactText", currentFact.text);
                 localStorage.setItem("savedFactImg", imgUrl);
 
-                
                 renderFactData(currentFact.text, imgUrl);
                 lockButton();
-
-                
-                confetti({
-                    particleCount: 80,
-                    spread: 70,
-                    origin: { y: 0.75 },
-                    colors: ['#ff85a2', '#ff6b8b', '#b39ddb', '#ffd1dc']
-                });
+                fireConfetti();
 
             } catch (error) {
                 console.error("API Hatası:", error);
@@ -218,7 +202,6 @@
             }
         }
 
-        
         function renderFactData(text, imgUrl) {
             const factText = document.getElementById("fact");
             const memeImg = document.getElementById("meme");
@@ -233,7 +216,6 @@
             }
         }
 
-        
         function lockButton() {
             const btn = document.querySelector(".btn-generate");
             btn.textContent = "Bugünün Fun Fact'i Açıldı! 🔒";
@@ -243,6 +225,15 @@
             btn.style.cursor = "default";
             btn.style.boxShadow = "none";
             btn.onclick = null;
+        }
+
+        function fireConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.75 },
+                colors: ['#ff85a2', '#ff6b8b', '#b39ddb', '#ffd1dc']
+            });
         }
     </script>
 </body>
