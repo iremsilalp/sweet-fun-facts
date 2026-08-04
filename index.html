@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Günün Sweet & Fun Fact'i ✨</title>
+    <!-- Google Fonts & Canvas Confetti -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #fff5f7;
+            --card-bg: #ffffff;
+            --primary-pink: #ff85a2;
+            --hover-pink: #ff6b8b;
+            --accent-purple: #b39ddb;
+            --text-dark: #4a4a4a;
+            --text-muted: #888888;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 32px 24px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(255, 133, 162, 0.15);
+            border: 2px solid #ffe1e8;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+        }
+
+        .header-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.8rem;
+            color: var(--primary-pink);
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .fact-container {
+            min-height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff9fa;
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px dashed #ffd1dc;
+            margin-bottom: 24px;
+        }
+
+        .meme-img {
+            max-width: 100%;
+            max-height: 160px;
+            border-radius: 12px;
+            object-fit: cover;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .fact-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.5;
+        }
+
+        .btn-generate {
+            background-color: var(--primary-pink);
+            color: white;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(255, 133, 162, 0.4);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .btn-generate:hover {
+            background-color: var(--hover-pink);
+            transform: scale(1.05);
+            box-shadow: 0 8px 22px rgba(255, 133, 162, 0.5);
+        }
+
+        .btn-generate:active {
+            transform: scale(0.98);
+        }
+
+        .footer-note {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1 class="header-title">Günün Fun Fact'i! 💖</h1>
+        <p class="subtitle">Her gün senin için yeni bir sürpriz!</p>
+
+        <div class="fact-container">
+            <img id="meme" class="meme-img" src="" alt="Meme / GIF" style="display: none;">
+            <p id="fact" class="fact-text">Aşağıdaki butona tıkla ve günün sürprizini aç! ✨</p>
+        </div>
+
+        <button class="btn-generate" onclick="getNewFact()">Günün Fun Fact'ini Aç! 🎲</button>
+
+        <p class="footer-note">Sadece senin için özel olarak kodlandı 🥰</p>
+    </div>
+
+    <script>
+        // ⚠️ SheetDB'den aldığın API URL'si buraya gelecek:
+        const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
+
+        const today = new Date().toISOString().slice(0, 10);
+        const lastOpenedDate = localStorage.getItem("lastOpenedDate");
+        const savedFactText = localStorage.getItem("savedFactText");
+        const savedFactImg = localStorage.getItem("savedFactImg");
+
+        // Sayfa her yüklendiğinde / yenilendiğinde çalışır
+        window.onload = function() {
+            // Eğer bugün zaten açılmışsa, kaydedilen fun fact'i direkt ekranda göster
+            if (lastOpenedDate === today && savedFactText) {
+                renderFactData(savedFactText, savedFactImg);
+                lockButton();
+            }
+        };
+
+        async function getNewFact() {
+            const factText = document.getElementById("fact");
+            const btn = document.querySelector(".btn-generate");
+
+            // Güvenlik: Bugün zaten açıldıysa tekrar çalıştırma
+            if (localStorage.getItem("lastOpenedDate") === today) {
+                return;
+            }
+
+            btn.textContent = "Yükleniyor... ✨";
+            btn.disabled = true;
+
+            try {
+                const response = await fetch(API_URL);
+                const rawFacts = await response.json();
+
+                // Boş satırları ve başlık kelimesi kalmış verileri filtrele
+                const facts = rawFacts.filter(f => f.text && f.text.trim() !== "" && f.text !== "text");
+
+                if (!facts || facts.length === 0) {
+                    factText.textContent = "Henüz yeni bir fun fact eklenmemiş! 🥺";
+                    btn.textContent = "Tekrar Dene 🎲";
+                    btn.disabled = false;
+                    return;
+                }
+
+                // Günün tarihine özel sabit indeks hesabı
+                const dateHash = today.split('-').reduce((acc, part) => acc + parseInt(part), 0);
+                const todayIndex = dateHash % facts.length;
+                const currentFact = facts[todayIndex];
+
+                // Görsel URL'si hem 'img' hem de 'image' başlığını destekler
+                const imgUrl = currentFact.img || currentFact.image || "";
+
+                // Cihazın hafızasına kaydet
+                localStorage.setItem("lastOpenedDate", today);
+                localStorage.setItem("savedFactText", currentFact.text);
+                localStorage.setItem("savedFactImg", imgUrl);
+
+                // Ekrana yazdır, konfeti patlat ve butonu kilitle
+                renderFactData(currentFact.text, imgUrl);
+                lockButton();
+
+                // İlk defa açıldığı için konfeti efekti
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.75 },
+                    colors: ['#ff85a2', '#ff6b8b', '#b39ddb', '#ffd1dc']
+                });
+
+            } catch (error) {
+                console.error("API Hatası:", error);
+                factText.textContent = "Bir küçük aksaklık oldu ama seni sevdiğim gerçeği değişmedi! 💖";
+                btn.textContent = "Tekrar Dene 🎲";
+                btn.disabled = false;
+            }
+        }
+
+        // Metin ve görseli ekrana basan yardımcı fonksiyon
+        function renderFactData(text, imgUrl) {
+            const factText = document.getElementById("fact");
+            const memeImg = document.getElementById("meme");
+
+            factText.textContent = text;
+
+            if (imgUrl && imgUrl.trim() !== "") {
+                memeImg.src = imgUrl;
+                memeImg.style.display = "block";
+            } else {
+                memeImg.style.display = "none";
+            }
+        }
+
+        // Butonu pasife alan ve tıklanmasını engelleyen yardımcı fonksiyon
+        function lockButton() {
+            const btn = document.querySelector(".btn-generate");
+            btn.textContent = "Bugünün Fun Fact'i Açıldı! 🔒";
+            btn.disabled = true;
+            btn.style.backgroundColor = "#d1c4e9";
+            btn.style.color = "#ffffff";
+            btn.style.cursor = "default";
+            btn.style.boxShadow = "none";
+            btn.onclick = null;
+        }
+    </script>
+</body>
+</html>
