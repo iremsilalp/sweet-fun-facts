@@ -144,7 +144,8 @@
     </div>
 
     <script>
-        const API_BASE_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
+        // DOGRUDAN ID 2 OLAN SATIRI CEKEN ACIL DURUM ENDPOINT'I
+        const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9/search?id=2";
 
         const today = new Date().toISOString().slice(0, 10);
         const lastOpenedDate = localStorage.getItem("lastOpenedDate");
@@ -171,30 +172,19 @@
             btn.disabled = true;
 
             try {
-                const cacheBusterUrl = `${API_BASE_URL}?_=${new Date().getTime()}`;
-                const response = await fetch(cacheBusterUrl, {
-                    cache: "no-store"
-                });
+                const cacheBusterUrl = `${API_URL}&_=${new Date().getTime()}`;
+                const response = await fetch(cacheBusterUrl, { cache: "no-store" });
                 const rawFacts = await response.json();
 
-                const facts = rawFacts.filter(f => f.text && f.text.trim() !== "" && f.text !== "text");
-
-                if (!facts || facts.length === 0) {
+                if (!rawFacts || rawFacts.length === 0) {
                     factText.textContent = "Henüz yeni bir fun fact eklenmemiş! 🥺";
                     btn.textContent = "Tekrar Dene 🎲";
                     btn.disabled = false;
                     return;
                 }
 
-                const now = new Date();
-                const startOfYear = new Date(now.getFullYear(), 0, 0);
-                const diff = now - startOfYear;
-                const oneDay = 1000 * 60 * 60 * 24;
-                const dayOfYear = Math.floor(diff / oneDay);
-
-                const todayIndex = dayOfYear % facts.length;
-                const currentFact = facts[todayIndex];
-
+                // Doğrudan aradığımız ID 2 verisini alıyoruz
+                const currentFact = rawFacts[0];
                 const imgUrl = currentFact.img || currentFact.image || "";
 
                 localStorage.setItem("lastOpenedDate", today);
