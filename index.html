@@ -144,35 +144,20 @@
     </div>
 
     <script>
-        // DOGRUDAN ID 2 OLAN SATIRI CEKEN ACIL DURUM ENDPOINT'I
         const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9/search?id=2";
 
-        const today = new Date().toISOString().slice(0, 10);
-        const lastOpenedDate = localStorage.getItem("lastOpenedDate");
-        const savedFactText = localStorage.getItem("savedFactText");
-        const savedFactImg = localStorage.getItem("savedFactImg");
-
-        window.onload = function() {
-            if (lastOpenedDate === today && savedFactText) {
-                renderFactData(savedFactText, savedFactImg);
-                lockButton();
-                fireConfetti();
-            }
-        };
+        // Eski kilitli kalmış hafızayı zorla temizle
+        localStorage.clear();
 
         async function getNewFact() {
             const factText = document.getElementById("fact");
             const btn = document.querySelector(".btn-generate");
 
-            if (localStorage.getItem("lastOpenedDate") === today) {
-                return;
-            }
-
             btn.textContent = "Yükleniyor... ✨";
             btn.disabled = true;
 
             try {
-                const cacheBusterUrl = `${API_URL}&_=${new Date().getTime()}`;
+                const cacheBusterUrl = `${API_URL}&t=${Date.now()}`;
                 const response = await fetch(cacheBusterUrl, { cache: "no-store" });
                 const rawFacts = await response.json();
 
@@ -183,13 +168,8 @@
                     return;
                 }
 
-                // Doğrudan aradığımız ID 2 verisini alıyoruz
                 const currentFact = rawFacts[0];
                 const imgUrl = currentFact.img || currentFact.image || "";
-
-                localStorage.setItem("lastOpenedDate", today);
-                localStorage.setItem("savedFactText", currentFact.text);
-                localStorage.setItem("savedFactImg", imgUrl);
 
                 renderFactData(currentFact.text, imgUrl);
                 lockButton();
