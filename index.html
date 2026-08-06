@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>Günün Sweet & Fun Fact'i ✨</title>
+    <!-- Google Fonts & Canvas Confetti -->
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
@@ -146,8 +144,6 @@
     <script>
         const API_URL = "https://sheetdb.io/api/v1/iyt2rxgc610g9";
 
-        localStorage.clear();
-
         async function getNewFact() {
             const factText = document.getElementById("fact");
             const btn = document.querySelector(".btn-generate");
@@ -156,36 +152,37 @@
             btn.disabled = true;
 
             try {
-                const cacheBusterUrl = `${API_URL}?_=${Date.now()}`;
-                const response = await fetch(cacheBusterUrl);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP Hata: ${response.status}`);
-                }
-
+                // Cache-busting eklenerek her istekte taze veri çekilmesi sağlandı
+                const response = await fetch(`${API_URL}?_=${Date.now()}`);
                 const rawFacts = await response.json();
 
-                if (!rawFacts || rawFacts.length === 0) {
-                    factText.textContent = "Henüz yeni bir fun fact eklenmemiş! 🥺";
+                const facts = rawFacts.filter(f => f.text && f.text.trim() !== "" && f.text !== "text");
+
+                if (!facts || facts.length === 0) {
+                    factText.textContent = "Henüz yeni bir sürpriz eklenmemiş! 🥺";
                     btn.textContent = "Tekrar Dene 🎲";
                     btn.disabled = false;
                     return;
                 }
 
-                let currentFact = rawFacts.find(f => String(f.id || f.ID).trim() === "2");
-
-                if (!currentFact) {
-                    currentFact = rawFacts[1] || rawFacts[0];
-                }
-
+                // Son eklenen veriyi (güncel sürprizi) getirmek için en son elemanı alır
+                const currentFact = facts[facts.length - 1];
                 const imgUrl = currentFact.img || currentFact.image || "";
 
                 renderFactData(currentFact.text, imgUrl);
-                lockButton();
-                fireConfetti();
+
+                btn.textContent = "Günün Sürprizi Açıldı! ✨";
+                btn.disabled = false;
+
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.75 },
+                    colors: ['#ff85a2', '#ff6b8b', '#b39ddb', '#ffd1dc']
+                });
 
             } catch (error) {
-                console.error("API Hatası Detayı:", error);
+                console.error("API Hatası:", error);
                 factText.textContent = "Bir küçük aksaklık oldu ama seni sevdiğim gerçeği değişmedi! 💖";
                 btn.textContent = "Tekrar Dene 🎲";
                 btn.disabled = false;
@@ -196,7 +193,8 @@
             const factText = document.getElementById("fact");
             const memeImg = document.getElementById("meme");
 
-            factText.textContent = text;
+            // textContent yerine innerHTML kullanılarak HTML linklerinin aktifleşmesi sağlandı
+            factText.innerHTML = text;
 
             if (imgUrl && imgUrl.trim() !== "") {
                 memeImg.src = imgUrl;
@@ -204,26 +202,6 @@
             } else {
                 memeImg.style.display = "none";
             }
-        }
-
-        function lockButton() {
-            const btn = document.querySelector(".btn-generate");
-            btn.textContent = "Bugünün Fun Fact'i Açıldı! 🔒";
-            btn.disabled = true;
-            btn.style.backgroundColor = "#d1c4e9";
-            btn.style.color = "#ffffff";
-            btn.style.cursor = "default";
-            btn.style.boxShadow = "none";
-            btn.onclick = null;
-        }
-
-        function fireConfetti() {
-            confetti({
-                particleCount: 80,
-                spread: 70,
-                origin: { y: 0.75 },
-                colors: ['#ff85a2', '#ff6b8b', '#b39ddb', '#ffd1dc']
-            });
         }
     </script>
 </body>
